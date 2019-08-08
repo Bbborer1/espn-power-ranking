@@ -1,5 +1,5 @@
-from .helper_methods import (get_formatted_teams, get_formatted_schedule,
-                             get_playoff_team_count, rank_simple_dict)
+from src.helper_methods import (get_formatted_teams, get_formatted_schedule,
+                                get_playoff_team_count, rank_simple_dict)
 
 
 def get_overall_wins(schedule):

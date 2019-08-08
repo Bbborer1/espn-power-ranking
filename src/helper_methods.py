@@ -2,7 +2,7 @@ import os
 
 import requests
 
-from .constants import PARAM_MAPPINGS
+from src.constants import PARAM_MAPPINGS, MATCHUP, TEAMS, SETTINGS
 
 
 def get_espn_data(data_heading, year):
@@ -22,10 +22,7 @@ def get_espn_data(data_heading, year):
                      params=params,
                      cookies={'SWID': espn_swid, 'espn_s2': espn_s2_code})
 
-    if r.json():
-        return r.json()[0]
-    else:
-        return None
+    return r.json()
 
 
 def walk_through_dict(dictionary, prev_path_walked=None):
@@ -51,7 +48,7 @@ def walk_through_dict(dictionary, prev_path_walked=None):
 
 
 def get_formatted_teams(year):
-    data = get_espn_data('teams', year)
+    data = get_espn_data(TEAMS, year)
     teams = data[0].get('teams')
     team_dict = {}
     for team in teams:
@@ -68,12 +65,9 @@ def get_formatted_teams(year):
 
 
 def get_formatted_schedule(year):
-    # Only shows one page worth of result (top 50)
-    # 'startIndex' will start lower on list
+    data = get_espn_data(MATCHUP, year)[0]
 
-    data = get_espn_data('schedules', year)
-
-    schedules = data[0].get('schedule')
+    schedules = data.get('schedule')
 
     formatted_schedule = {}
     for game in schedules:
@@ -100,7 +94,7 @@ def get_formatted_schedule(year):
 
 
 def get_playoff_team_count(year):
-    all_settings = get_espn_data('settings', year)[0]
+    all_settings = get_espn_data(SETTINGS, year)[0]
     schedule_settings = all_settings.get('settings').get('scheduleSettings')
 
     playoff_team_count = schedule_settings.get('playoffTeamCount')
@@ -110,8 +104,11 @@ def get_playoff_team_count(year):
 
 def rank_simple_dict(simple_dict, reverse=True):
     ranked_list = [key for rank, key in
-     enumerate(sorted(simple_dict, key=simple_dict.get,
-                      reverse=reverse),
-               1)]
+                   enumerate(sorted(simple_dict, key=simple_dict.get,
+                                    reverse=reverse),
+                             1)]
 
     return ranked_list
+
+# x = get_espn_data('top_performers', 2017)
+# print(x)

@@ -5,6 +5,8 @@ TOP_PERFORMERS = 'top_performers'
 TEAMS = 'teams'
 MODULAR = 'modular'
 NAV = 'nav'
+SCHEDULE = 'schedule'
+MATCHUP = 'matchup'
 
 PARAM_MAPPINGS = {SETTINGS: 'mSettings',
                   ROSTERS: 'mRoster',
@@ -12,4 +14,6 @@ PARAM_MAPPINGS = {SETTINGS: 'mSettings',
                   TOP_PERFORMERS: 'mTopPerformers',
                   TEAMS: 'mTeam',
                   MODULAR: 'modular',
-                  NAV: 'mNav'}
+                  NAV: 'mNav',
+                  SCHEDULE: 'mSchedule',
+                  MATCHUP: 'mMatchupScore'}

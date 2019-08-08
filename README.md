@@ -1,3 +1,5 @@
+This project is mean to use the espn api to collect data and output in a specific way.
+
 ## ENVIRONMENT VARIABLES NEEDED
 
 * `LEAGUE_ID` - look at the url once you log into espn fantasy football

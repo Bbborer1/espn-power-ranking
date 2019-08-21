@@ -2,27 +2,51 @@ import os
 
 import requests
 
-from src.constants import PARAM_MAPPINGS, MATCHUP, TEAMS, SETTINGS
+from src.constants import PARAM_MAPPINGS, MATCHUP, TEAMS, SETTINGS, MATCHUP_SCORE
 
 
-def get_espn_data(data_heading, year):
-    param_heading = PARAM_MAPPINGS.get(data_heading)
-    if not param_heading:
-        raise RuntimeError('invalid param heading')
+def get_espn_data(year, historical=True, views=None, **kwargs):
+    """
+    historical is any year before 2018.  Not sure if 2018 will need to use the historical
+    url in the near future once 2019 season starts
 
-    params = {'view': param_heading,
-              'seasonId': year}
+    views is data that we want to put in the param view for the api call.  These can be
+    found in the constants file
+
+    **kwargs are params for the url.  Most common one is scoringPeriodId
+    """
+    if views is None:
+        views = []
     league_id = os.environ.get('LEAGUE_ID')
     espn_swid = os.environ.get('ESPN_SWID')
     espn_s2_code = os.environ.get('ESPN_S2_CODE')
 
-    # This url is active as of the start of  2019 season
-    url = f"https://fantasy.espn.com/apis/v3/games/ffl/leagueHistory/{league_id}"
+    params = {}
+    url = f"https://fantasy.espn.com/apis/v3/games/ffl/seasons/{year}/segments/0/leagues/{league_id}"
+    if historical:
+        params.update({'seasonId': year})
+        url = f"https://fantasy.espn.com/apis/v3/games/ffl/leagueHistory/{league_id}"
+
+    formatted_views = []
+    for arg in views:
+        param_heading = PARAM_MAPPINGS.get(arg)
+        if not param_heading:
+            raise RuntimeError('invalid param heading')
+        formatted_views.append(param_heading)
+    if formatted_views:
+        params.update({'view': formatted_views})
+
+    params.update(kwargs)
+
     r = requests.get(url,
                      params=params,
                      cookies={'SWID': espn_swid, 'espn_s2': espn_s2_code})
+    print(r.url)
 
-    return r.json()
+    response_data = r.json()
+    if type(response_data) == list and len(response_data) == 1:
+        return response_data[0]
+    return response_data
 
 
 def walk_through_dict(dictionary, prev_path_walked=None):
@@ -48,8 +72,8 @@ def walk_through_dict(dictionary, prev_path_walked=None):
 
 
 def get_formatted_teams(year):
-    data = get_espn_data(TEAMS, year)
-    teams = data[0].get('teams')
+    data = get_espn_data(year, views=[TEAMS])
+    teams = data.get('teams')
     team_dict = {}
     for team in teams:
         name = team.get('location') + ' ' + team.get('nickname')
@@ -65,7 +89,7 @@ def get_formatted_teams(year):
 
 
 def get_formatted_schedule(year):
-    data = get_espn_data(MATCHUP, year)[0]
+    data = get_espn_data(year, views=[MATCHUP_SCORE])
 
     schedules = data.get('schedule')
 
@@ -94,7 +118,7 @@ def get_formatted_schedule(year):
 
 
 def get_playoff_team_count(year):
-    all_settings = get_espn_data(SETTINGS, year)[0]
+    all_settings = get_espn_data(year, views=[SETTINGS])
     schedule_settings = all_settings.get('settings').get('scheduleSettings')
 
     playoff_team_count = schedule_settings.get('playoffTeamCount')
@@ -110,5 +134,49 @@ def rank_simple_dict(simple_dict, reverse=True):
 
     return ranked_list
 
-# x = get_espn_data('top_performers', 2017)
-# print(x)
+
+def get_players_score():
+    scoring_period = 5
+    data = get_espn_data(2018, historical=False, views=['matchup', 'matchup_score'],
+                         scoringPeriodId=scoring_period)
+    team_data = data.get('teams')
+
+    for team in team_data:
+        team_id = team.get('id')
+
+        rosters = team.get('roster')
+        players = rosters.get('entries')
+        print(f"{team_id}: '-------------------'")
+        for player in players:
+            # Other things can be found at this level
+
+            position_id = player.get('lineupSlotId')
+            player_pool_entry = player.get('playerPoolEntry')
+            player = player_pool_entry.get('player')
+            # get player details at this level
+
+            player_name = player.get('fullName')
+            print(player_name)
+
+            rankings = player.get('rankings')
+            # list for rankings.  No idea what the different sources mean
+
+            stats = player.get('stats')
+            player_dict = {}
+            for stat in stats:
+                if stat.get('scoringPeriodId') == scoring_period:
+                    if stat.get('statSourceId') == 0:
+                        player_dict.update({'actual':
+                                                {'applied_stats': stat.get(
+                                                    'appliedStats'),
+                                                 'applied_total': stat.get(
+                                                     'appliedTotal')}})
+                    elif stat.get('statSourceId') == 1:
+                        player_dict.update({'projected':
+                                                {'applied_stats': stat.get(
+                                                    'appliedStats'),
+                                                 'applied_total': stat.get(
+                                                     'appliedTotal')}})
+            # print(f'{player_name}:')
+            # print(f'actual: {player_dict.get("actual")}')
+            # print('----')

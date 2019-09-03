@@ -9,6 +9,7 @@ SCHEDULE = 'schedule'
 MATCHUP = 'matchup'
 MATCHUP_SCORE = 'matchup_score'
 PLAYERS = 'players'
+KONA_PLAYER_INFO = 'kona_player_info'
 
 PARAM_MAPPINGS = {SETTINGS: 'mSettings',
                   ROSTERS: 'mRoster',
@@ -20,7 +21,8 @@ PARAM_MAPPINGS = {SETTINGS: 'mSettings',
                   SCHEDULE: 'mSchedule',
                   MATCHUP: 'mMatchup',
                   MATCHUP_SCORE: 'mMatchupScore',
-                  PLAYERS: 'mPlayers'}
+                  PLAYERS: 'mPlayers',
+                  KONA_PLAYER_INFO: 'kona_player_info'}
 
 
 POSITION_MAP = {

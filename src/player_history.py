@@ -3,7 +3,7 @@ from src.helper_methods import (get_espn_data)
 
 def main():
     # get_players_score()
-    draft_data = get_espn_data(2018, historical=True, views=['kona_player_info'])
+    draft_data = get_espn_data(2018, views=['kona_player_info'])
 
     players = draft_data.get('players')
     for player in players:

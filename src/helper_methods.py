@@ -5,7 +5,7 @@ import requests
 from src.constants import PARAM_MAPPINGS, MATCHUP, TEAMS, SETTINGS, MATCHUP_SCORE
 
 
-def get_espn_data(year, historical=True, views=None, **kwargs):
+def get_espn_data(year, views=None, **kwargs):
     """
     historical is any year before 2018.  Not sure if 2018 will need to use the historical
     url in the near future once 2019 season starts
@@ -15,6 +15,9 @@ def get_espn_data(year, historical=True, views=None, **kwargs):
 
     **kwargs are params for the url.  Most common one is scoringPeriodId
     """
+    historical = False
+    if int(year) < 2018:
+        historical = True
     if views is None:
         views = []
     league_id = os.environ.get('LEAGUE_ID')
@@ -137,7 +140,7 @@ def rank_simple_dict(simple_dict, reverse=True):
 
 def get_players_score():
     scoring_period = 5
-    data = get_espn_data(2018, historical=False, views=['matchup', 'matchup_score'],
+    data = get_espn_data(2018, views=['matchup', 'matchup_score'],
                          scoringPeriodId=scoring_period)
     team_data = data.get('teams')
 

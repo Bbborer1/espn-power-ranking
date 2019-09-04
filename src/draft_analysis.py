@@ -1,18 +1,23 @@
+from src.constants import POSITION_MAP
 from src.helper_methods import (get_espn_data, get_formatted_teams)
 
 
-def pull_draft_value(year):
-    # get_players_score()
+def pull_draft_results(year):
     draft_data = get_espn_data(year, historical=False, views=['kona_player_info'])
 
     players = draft_data.get('players')
+    return players
+
+
+def order_draft_results(draft_results, order_by='team'):
+    # get_players_score()
+
     league_draft = {}
-    for player in players:
+    for player in draft_results:
         amount_paid = player.get('keeperValueFuture')
         team = player.get('onTeamId')
         if amount_paid > 0:
             # player was drafted
-            team_dict = league_draft.get(team, {})
 
             player_details = player.get('player')
             position = player_details.get('defaultPositionId')
@@ -23,11 +28,23 @@ def pull_draft_value(year):
             average_draft_position = player_details.get('ownership').get(
                 'averageDraftPosition')
 
-            team_dict.update({name: {'position': position,
-                                     'auction_value': auction_value,
-                                     'adp': average_draft_position,
-                                     'actual_value': amount_paid}})
-            league_draft.update({team: team_dict})
+            if order_by == 'team':
+                team_dict = league_draft.get(team, {})
+
+                team_dict.update({name: {'position': position,
+                                         'auction_value': auction_value,
+                                         'adp': average_draft_position,
+                                         'actual_value': amount_paid,
+                                         'team': team}})
+                league_draft.update({team: team_dict})
+            elif order_by == 'position':
+                position_dict = league_draft.get(position, {})
+                position_dict.update({name: {'position': position,
+                                             'auction_value': auction_value,
+                                             'adp': average_draft_position,
+                                             'actual_value': amount_paid,
+                                             'team': team}})
+                league_draft.update({position: position_dict})
     return league_draft
 
 
@@ -70,13 +87,29 @@ def get_best_and_worst_picks(draft_values, team_dict):
         print(f'{team}: {worst_picks[0]}: {worst_picks[1]}')
 
 
+def sort_positions(ordered_by_position, team_dict):
+    for position_int, players in ordered_by_position.items():
+        sorted_players = sorted(players.items(), key=lambda x: x[1].get('actual_value'),
+                                reverse=True)
+        print(f'{POSITION_MAP.get(position_int)} ordered by paid value')
+        for player, player_info in sorted_players:
+            team_name = team_dict.get(player_info.get("team")).get("name")
+            print(f'{player_info.get("actual_value")} - {player} - {team_name}')
+
+
 def main():
     year = 2019
-    draft_values = pull_draft_value(year)
     team_dict = get_formatted_teams(year)
 
-    # get_expected_totals(draft_values, team_dict)
-    get_best_and_worst_picks(draft_values, team_dict)
+    draft_results = pull_draft_results(year)
+    ordered_by_team = order_draft_results(draft_results, order_by='team')
+
+    get_expected_totals(ordered_by_team, team_dict)
+    get_best_and_worst_picks(ordered_by_team, team_dict)
+
+    ordered_by_position = order_draft_results(draft_results, order_by='position')
+
+    sort_positions(ordered_by_position, team_dict)
 
 
 main()

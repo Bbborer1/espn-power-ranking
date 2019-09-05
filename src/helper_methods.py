@@ -5,7 +5,7 @@ import requests
 from src.constants import PARAM_MAPPINGS, MATCHUP, TEAMS, SETTINGS, MATCHUP_SCORE
 
 
-def get_espn_data(year, historical=True, views=None, **kwargs):
+def get_espn_data(year, views=None, **kwargs):
     """
     historical is any year before 2018.  Not sure if 2018 will need to use the historical
     url in the near future once 2019 season starts
@@ -15,6 +15,9 @@ def get_espn_data(year, historical=True, views=None, **kwargs):
 
     **kwargs are params for the url.  Most common one is scoringPeriodId
     """
+    historical = False
+    if int(year) <= 2018:
+        historical = True
     if views is None:
         views = []
     league_id = os.environ.get('LEAGUE_ID')
@@ -47,6 +50,23 @@ def get_espn_data(year, historical=True, views=None, **kwargs):
     if type(response_data) == list and len(response_data) == 1:
         return response_data[0]
     return response_data
+
+
+def get_espn_player_data(year):
+
+    url = f"https://fantasy.espn.com/apis/v3/games/ffl/seasons/{year}/players"
+    params = {'view': 'players_wl',
+              'scoring_period': 0}
+    r = requests.get(url,
+                     params=params)
+    print(r.url)
+
+    response_data = r.json()
+    player_dict = {}
+    for player in response_data:
+        player_dict.update({player.get('id'): player})
+
+    return player_dict
 
 
 def walk_through_dict(dictionary, prev_path_walked=None):
@@ -137,7 +157,7 @@ def rank_simple_dict(simple_dict, reverse=True):
 
 def get_players_score():
     scoring_period = 5
-    data = get_espn_data(2018, historical=False, views=['matchup', 'matchup_score'],
+    data = get_espn_data(2018, views=['matchup', 'matchup_score'],
                          scoringPeriodId=scoring_period)
     team_data = data.get('teams')
 

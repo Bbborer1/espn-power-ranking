@@ -4,11 +4,15 @@ from src.helper_methods import (get_espn_data, get_formatted_teams, get_espn_pla
 
 def pull_kona_player_info(year):
     """
-    Not even sure what kona info is.
-    """
-    draft_data = get_espn_data(year, views=['kona_player_info'])
+    Not even sure what kona info is. but this data gives specific draft details
 
-    players = draft_data.get('players')
+    output: {player_name: {position, aav, adp, paid_value, current_team, full_name}}
+
+    potential bug is that two players could have the same name
+    """
+    player_info = get_espn_data(year, views=['kona_player_info'])
+
+    players = player_info.get('players')
     output_dict = {}
     for player in players:
         amount_paid = player.get('keeperValueFuture')
@@ -18,22 +22,27 @@ def pull_kona_player_info(year):
 
             player_details = player.get('player')
             position = player_details.get('defaultPositionId')
-            name = player_details.get('fullName')
+            full_name = player_details.get('fullName')
 
-            auction_value = player_details.get('ownership').get('auctionValueAverage')
+            aav = player_details.get('ownership').get('auctionValueAverage')
 
-            average_draft_position = player_details.get('ownership').get(
-                'averageDraftPosition')
-            output_dict.update({name: {'position': position,
-                                       'aav': auction_value,
-                                       'adp': average_draft_position,
-                                       'paid_value': amount_paid,
-                                       'currentTeam': team,
-                                       'fullName': name}})
+            adp = player_details.get('ownership').get('averageDraftPosition')
+            output_dict.update({full_name: {'position': position,
+                                            'aav': aav,
+                                            'adp': adp,
+                                            'paid_value': amount_paid,
+                                            'current_team': team,
+                                            'full_name': full_name}})
     return output_dict
 
 
 def pull_draft_info(year):
+    """
+    Pull info from multiple sources and piece it together to get
+    output: {player_name: {position, aav, adp, paid_value, current_team, full_name,
+                            draftingTeam, roundDrafted, roundPosition,
+                            overallDraftPosition}}
+    """
     player_data = get_espn_player_data(year)
     # This data gets you playerId to name
 
@@ -42,31 +51,33 @@ def pull_draft_info(year):
     # not include name but does include playerId
 
     player_detail_info = pull_kona_player_info(year)
+    # this gives us more detailed player info
 
     picks = draft_data.get('draftDetail').get('picks')
-
     for pick in picks:
         player_name = player_data.get(pick.get('playerId')).get('fullName')
         player_info = player_detail_info.get(player_name)
         if player_info:
-            player_info.update({'draftingTeam': pick.get('teamId'),
-                                'roundDrafted': pick.get('roundId'),
-                                'roundPosition': pick.get('roundPickNumber'),
-                                'overallDraftPosition': pick.get('overallPickNumber')})
+            player_info.update({'drafting_team': pick.get('teamId'),
+                                'round_drafted': pick.get('roundId'),
+                                'round_position': pick.get('roundPickNumber'),
+                                'overall_draft_position': pick.get('overallPickNumber')})
 
     return player_detail_info
 
 
 def order_draft_results_by_team(draft_results):
+    """reorder draft results so that we have a dict of {team: {name: details}}"""
     league = {}
     for player, player_details in draft_results.items():
-        team_dict = league.get(player_details.get('draftingTeam'), {})
+        team_dict = league.get(player_details.get('drafting_team'), {})
         team_dict.update({player: player_details})
-        league.update({player_details.get('draftingTeam'): team_dict})
+        league.update({player_details.get('drafting_team'): team_dict})
     return league
 
 
 def order_draft_results_by_position(draft_results):
+    """reorder draft results so that we have a dict of {position: {name: details}}"""
     league = {}
     for player, player_details in draft_results.items():
         position_dict = league.get(player_details.get('position'), {})
@@ -76,11 +87,12 @@ def order_draft_results_by_position(draft_results):
 
 
 def get_expected_totals(draft_values, team_dict):
+    """Add up the aav for each player on teams"""
     for team_id, players_dict in draft_values.items():
         expected_total = 0
         for player, player_data in players_dict.items():
             expected_total += player_data.get('aav')
-        print(f'{team_dict.get(team_id).get("name")}: {expected_total}')
+        print(f'{team_dict.get(team_id).get("name")}: {int(expected_total)}')
 
 
 def get_best_and_worst_picks(draft_values, team_dict):
@@ -106,12 +118,12 @@ def get_best_and_worst_picks(draft_values, team_dict):
     print('Best Value compared to AAV')
     for team, values in team_picks.items():
         best_picks = values.get('best')
-        print(f'{team}: {best_picks[0]}: {best_picks[1]}')
+        print(f'{team}: {best_picks[0]}: {int(best_picks[1])}')
 
     print('Worst Value compared to AAV')
     for team, values in team_picks.items():
         worst_picks = values.get('worst')
-        print(f'{team}: {worst_picks[0]}: {worst_picks[1]}')
+        print(f'{team}: {worst_picks[0]}: {int(worst_picks[1])}')
 
 
 def sort_positions(ordered_by_position, team_dict):
@@ -120,7 +132,7 @@ def sort_positions(ordered_by_position, team_dict):
                                 reverse=True)
         print(f'{POSITION_MAP.get(position_int)} ordered by paid value')
         for player, player_info in sorted_players:
-            team_name = team_dict.get(player_info.get("draftingTeam")).get("name")
+            team_name = team_dict.get(player_info.get("drafting_team")).get("name")
             print(f'{player_info.get("paid_value")} - {player} - {team_name}')
 
 

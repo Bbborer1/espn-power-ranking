@@ -16,7 +16,7 @@ def get_espn_data(year, views=None, **kwargs):
     **kwargs are params for the url.  Most common one is scoringPeriodId
     """
     historical = False
-    if int(year) < 2018:
+    if int(year) <= 2018:
         historical = True
     if views is None:
         views = []
@@ -50,6 +50,23 @@ def get_espn_data(year, views=None, **kwargs):
     if type(response_data) == list and len(response_data) == 1:
         return response_data[0]
     return response_data
+
+
+def get_espn_player_data(year):
+
+    url = f"https://fantasy.espn.com/apis/v3/games/ffl/seasons/{year}/players"
+    params = {'view': 'players_wl',
+              'scoring_period': 0}
+    r = requests.get(url,
+                     params=params)
+    print(r.url)
+
+    response_data = r.json()
+    player_dict = {}
+    for player in response_data:
+        player_dict.update({player.get('id'): player})
+
+    return player_dict
 
 
 def walk_through_dict(dictionary, prev_path_walked=None):

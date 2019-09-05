@@ -10,6 +10,8 @@ MATCHUP = 'matchup'
 MATCHUP_SCORE = 'matchup_score'
 PLAYERS = 'players'
 KONA_PLAYER_INFO = 'kona_player_info'
+DRAFT_INFO = 'draft_info'
+DRAFT_RECAP = 'draft_recap'
 
 PARAM_MAPPINGS = {SETTINGS: 'mSettings',
                   ROSTERS: 'mRoster',
@@ -22,7 +24,9 @@ PARAM_MAPPINGS = {SETTINGS: 'mSettings',
                   MATCHUP: 'mMatchup',
                   MATCHUP_SCORE: 'mMatchupScore',
                   PLAYERS: 'mPlayers',
-                  KONA_PLAYER_INFO: 'kona_player_info'}
+                  KONA_PLAYER_INFO: 'kona_player_info',
+                  DRAFT_INFO: 'mDraftDetail',
+                  DRAFT_RECAP: 'mDraftRecap'}
 
 
 POSITION_MAP = {

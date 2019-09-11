@@ -38,6 +38,20 @@ POSITION_MAP = {
     2: 'RB'
 }
 
+
+STARTERS = {
+    'QB': 20,
+    'DEF': 10,
+    'K': 10,
+    'WR': 20,
+    'TE': 10,
+    'RB': 20,
+    'FLEX': 10
+}
+
+FLEX = ['WR', 'TE', 'RB']
+
+
 STAT_MAP = {53: 'points for receptions',
             102: 'related to defense',
             72: 'fumble',

@@ -115,6 +115,8 @@ def get_formatted_schedule(year):
 
     formatted_schedule = {}
     for game in schedules:
+        if game.get('winner') == 'UNDECIDED':
+            continue
         existing_week = formatted_schedule.get(game.get('matchupPeriodId'), {})
 
         home_team = game.get('home')

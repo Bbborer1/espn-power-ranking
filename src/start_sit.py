@@ -17,7 +17,8 @@ def pull_kona_player_info(year, scoring_period, free_agent_only=True):
     players = player_info.get('players')
     formatted_dict = {}
     for player in players:
-        if player.get('onTeamId') == 0:
+        free_agent = player.get('onTeamId') == 0
+        if free_agent == free_agent_only:
             player_details = player.get('player')
             stats = player_details.get('stats')
             for stat_dict in stats:
@@ -56,6 +57,6 @@ def sort_positions(ordered_by_position):
 
 
 year = 2019
-data = pull_kona_player_info(year, scoring_period=1)
+data = pull_kona_player_info(year, scoring_period=2, free_agent_only=False)
 # team_dict = get_formatted_teams(year)
 sort_positions(data)

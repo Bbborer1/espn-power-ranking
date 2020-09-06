@@ -8,7 +8,7 @@ def get_overall_wins(schedule):
         weekly_score_dict = {}
         for team, values in games.items():
             weekly_score_dict.update({team: values.get('score')})
-        ranked_outcome = rank_simple_dict(weekly_score_dict)
+        ranked_outcome = rank_simple_dict(weekly_score_dict, reverse=False)
 
         score_dict.update({week: ranked_outcome})
 
@@ -31,7 +31,7 @@ def get_season_totals(year):
             rank = rankings.index(team_id) + 1
             position.append(rank)
 
-            if rank <= top_half:
+            if rank >= top_half:
                 league_wins += 1
 
         team_total = {team_stats.get("name"): {'league_wins': league_wins,
@@ -79,7 +79,7 @@ def get_playoff_rankings(year):
 
 
 def main():
-    years = ['2018']
+    years = ['2019']
     for year in years:
         get_playoff_rankings(year)
 

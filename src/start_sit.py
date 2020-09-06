@@ -108,3 +108,7 @@ def main():
 
 
 main()
+year = 2019
+data = pull_kona_player_info(year, scoring_period=2, free_agent_only=False)
+# team_dict = get_formatted_teams(year)
+sort_positions(data)

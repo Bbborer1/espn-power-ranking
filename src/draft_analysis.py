@@ -1,6 +1,6 @@
 from src.constants import POSITION_MAP
 from src.helper_methods import (get_espn_data, get_formatted_teams, get_espn_player_data)
-
+import csv
 
 def pull_kona_player_info(year):
     """
@@ -62,6 +62,11 @@ def pull_draft_info(year):
                                 'round_drafted': pick.get('roundId'),
                                 'round_position': pick.get('roundPickNumber'),
                                 'overall_draft_position': pick.get('overallPickNumber')})
+        else:
+            player_detail_info.update({player_name: {'drafting_team': pick.get('teamId'),
+                                                     'round_drafted': pick.get('roundId'),
+                                                     'round_position': pick.get('roundPickNumber'),
+                                                     'overall_draft_position': pick.get('overallPickNumber')}})
 
     return player_detail_info
 
@@ -135,17 +140,32 @@ def sort_positions(ordered_by_position, team_dict):
             team_name = team_dict.get(player_info.get("drafting_team")).get("name")
             print(f'{player_info.get("paid_value")} - {player} - {team_name}')
 
+def format_records(draft_results):
+    records = []
+    for player_name, player_data in draft_results.items():
+
+        record = {'name': player_name,
+                  'position': player_data.get('position'),
+                  'paid_value': player_data.get('paid_value')}
+        records.append(record)
+    return records
+
 
 def main():
     year = 2019
-    team_dict = get_formatted_teams(year)
-
     draft_results = pull_draft_info(year)
-    teams = order_draft_results_by_team(draft_results)
-    positions = order_draft_results_by_position(draft_results)
-    get_expected_totals(teams, team_dict)
-    get_best_and_worst_picks(teams, team_dict)
-    sort_positions(positions, team_dict)
+
+    master_list = format_records(draft_results)
+    with open('draft_stats.csv', 'w', newline='') as csvfile:
+        fieldnames = ['name', 'position', 'paid_value']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter="|",
+                                extrasaction='ignore')
+
+        writer.writeheader()
+        writer.writerows(master_list)
+
+print('here')
+
 
 
 main()

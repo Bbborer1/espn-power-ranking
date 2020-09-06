@@ -79,7 +79,7 @@ def get_playoff_rankings(year):
 
 
 def main():
-    years = ['2012', '2013', '2014', '2015', '2016', '2017', '2018']
+    years = ['2018']
     for year in years:
         get_playoff_rankings(year)
 

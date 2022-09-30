@@ -1,11 +1,11 @@
+import json
 import os
 
 import requests
 
 from src.constants import PARAM_MAPPINGS, MATCHUP, TEAMS, SETTINGS, MATCHUP_SCORE
 
-
-def get_espn_data(year, views=None, **kwargs):
+def get_espn_data(year, views=None, headers=None, **kwargs):
     """
     historical is any year before 2018.  Not sure if 2018 will need to use the historical
     url in the near future once 2019 season starts
@@ -43,7 +43,8 @@ def get_espn_data(year, views=None, **kwargs):
 
     r = requests.get(url,
                      params=params,
-                     cookies={'SWID': espn_swid, 'espn_s2': espn_s2_code})
+                     cookies={'SWID': espn_swid, 'espn_s2': espn_s2_code},
+                     headers=headers)
     print(r.url)
 
     response_data = r.json()
@@ -53,7 +54,6 @@ def get_espn_data(year, views=None, **kwargs):
 
 
 def get_espn_player_data(year):
-
     url = f"https://fantasy.espn.com/apis/v3/games/ffl/seasons/{year}/players"
     params = {'view': 'players_wl',
               'scoring_period': 0}
@@ -189,16 +189,16 @@ def get_players_score():
                 if stat.get('scoringPeriodId') == scoring_period:
                     if stat.get('statSourceId') == 0:
                         player_dict.update({'actual':
-                                                {'applied_stats': stat.get(
-                                                    'appliedStats'),
-                                                 'applied_total': stat.get(
-                                                     'appliedTotal')}})
+                            {'applied_stats': stat.get(
+                                'appliedStats'),
+                                'applied_total': stat.get(
+                                    'appliedTotal')}})
                     elif stat.get('statSourceId') == 1:
                         player_dict.update({'projected':
-                                                {'applied_stats': stat.get(
-                                                    'appliedStats'),
-                                                 'applied_total': stat.get(
-                                                     'appliedTotal')}})
+                            {'applied_stats': stat.get(
+                                'appliedStats'),
+                                'applied_total': stat.get(
+                                    'appliedTotal')}})
             # print(f'{player_name}:')
             # print(f'actual: {player_dict.get("actual")}')
             # print('----')
